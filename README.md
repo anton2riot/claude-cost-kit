@@ -95,6 +95,40 @@ Ask the agent to search for three different things in one message. The third sea
 should come back denied, with the message about handing the work to a subagent. From
 there the agent batches the lookups itself.
 
+### 4. `tools/report.py` — measuring the effect
+
+Claude Code stores every session as JSONL under `~/.claude/projects/`, with the `usage`
+block of each turn. That is enough to see whether the loop actually got shorter, without
+waiting for a billing dashboard:
+
+```sh
+python3 tools/report.py --days 14
+python3 tools/report.py --split 2026-07-29     # the day you installed the hooks
+python3 tools/report.py --project my-repo
+```
+
+Per day, and then as a before/after pair around `--split`:
+
+| column | meaning |
+|---|---|
+| `msgs` | user messages that day — the unit of work |
+| `calls`, `calls/msg` | tool calls in the main loop, total and per message |
+| `search`, `search/msg` | search calls in the main loop — the gate's direct target |
+| `ctx/call` | average context carried by one main-loop request |
+| `ctx total` | all context sent in main-loop requests that day — the money line |
+| `sub calls`, `sub ctx` | the same work done inside subagents, where context is cheap |
+| `denied` | search calls the gate refused, from its own log |
+
+**Read the per-message rows, not the totals.** Days differ in how much work they contain,
+so `calls per message` and `context per message` are the comparable numbers; the totals
+only say how busy the day was. Expect `sub calls` to go **up** while `calls/msg` goes down
+— that is the mechanism working, search moving out of the expensive context.
+
+The report deliberately prints no money: token prices depend on your plan and proxy. Take
+the absolute spend from your billing dashboard and use this report to explain its shape.
+
+`denied` only counts days after installation, because the log starts with the gate.
+
 ## What it does not do
 
 - It does not shrink context already accumulated in the current session.

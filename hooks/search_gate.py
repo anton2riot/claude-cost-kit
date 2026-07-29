@@ -15,6 +15,7 @@ Calls made *by* a subagent are never counted and never denied: their payload car
 `agent_id`. File edits, builds, tests and git are untouched.
 """
 
+import datetime as dt
 import json
 import os
 import re
@@ -102,6 +103,24 @@ def main() -> None:
 
     if count <= FREE_SEARCH_CALLS:
         return
+
+    # Denials are logged here so tools/report.py can count them exactly instead of
+    # guessing from transcript text.
+    try:
+        with (directory / "denials.jsonl").open("a", encoding="utf-8") as log:
+            log.write(
+                json.dumps(
+                    {
+                        "ts": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
+                        "n": count,
+                        "tool": payload.get("tool_name"),
+                        "session": payload.get("session_id"),
+                    }
+                )
+                + "\n"
+            )
+    except OSError:
+        pass
 
     print(
         json.dumps(
