@@ -41,8 +41,11 @@ REASON = (
     "Mechanical search in the main context is closed: this is search call #{n} for the "
     "current user message, and each one drags the whole conversation into the request. "
     "Batch the remaining lookups into ONE task and hand it to a subagent: "
-    "Agent with subagent_type quick-lookup, stating what to find and what to return. "
-    "Its context is isolated and far smaller. "
+    "Agent with subagent_type quick-lookup, stating what to find, what to return and a "
+    "ceiling on how much (e.g. 'at most 10 paths, one line each', 'under 20 lines'). "
+    "Without a stated ceiling the answer comes back as a dump and lands in this same "
+    "context, defeating the point. The report is working material: summarise it in a few "
+    "lines of your own, do not paste it or its file lists into the dialogue. "
     "File edits (Read/Edit/Write), builds, tests and git remain available directly."
 )
 
